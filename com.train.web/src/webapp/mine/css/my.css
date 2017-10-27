@@ -1,0 +1,14 @@
+
+.top,.top1{height:15px;}
+
+.top_head{height:10px;width:980px; margin:0 auto;repeat;}
+.top1{width:800px;margin:0 auto;}
+.top_head ul li{ width: 85px; height: 30px; line-height: 30px; text-align: center;}
+.logo{ width: 140px; height: 80px; line-height: 80px;}
+.top1_head{ width:400px; height: 80px;margin: 0 auto; margin-left: 0px;}
+
+/*列表标签样式去除*/
+ul,li{ list-style:none;display: inline-block;//使li对象显示为一行}	
+
+/* 浮动*/
+.fl{ float:left; display:inline;}

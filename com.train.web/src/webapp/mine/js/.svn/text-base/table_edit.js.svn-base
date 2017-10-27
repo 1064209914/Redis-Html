@@ -1,0 +1,235 @@
+/**
+ * @author horken wong <horken.wong@gmail.com>
+ * @version: v1.0.0
+ * https://github.com/horkenw/bootstrap-table
+ * Click to edit row for bootstrap-table
+ */
+
+(function ($) {
+    'use strict';
+
+    $.extend($.fn.bootstrapTable.defaults, {
+        clickEdit: false
+    });
+
+    function setDivision(node, options){
+        var $option = $('<option />');
+        if(options){
+            $(options).each(function(i, v){
+                $option.clone().text(v.idxNum + ' ' +v.name).val(v.idxNum).appendTo(node);
+            })
+        }
+        else{
+            console.log('Please setup options first!!')
+        }
+    }
+
+    function clikcToEdit(evt, tarNode){
+    	$('.editable-edit').css('display','none');
+        var txt = [], table = evt;
+            //submit = '<button type="button" class="btn btn-primary btn-sm editable-submit" style="height:25px;">保存</button>',
+        	//cancel = '<button type="button" class="btn btn-default btn-sm editable-cancel" style="height:25px;display:none;">取消</button>';
+        var replaceData = function(ele){
+            txt = [];
+            tarNode.find('td').find('input[type="text"]').each(function(i, td){
+            		txt.push($(td).eq(0).val());
+            });
+            tarNode.find('select').each(function(i, td){
+                txt.push($('#'+td.id+' option:selected').val());
+            });
+            var postdata = new Object();
+            var recordSorts = tarNode.find('select').eq(0).children(':selected').text();
+            var recordScores = txt[0];
+            var recordRemarkss = txt[1];
+            postdata["recordScore"]=recordScores;
+            postdata["recordId"]=$("#txt_search_call_records_id").html();
+			postdata["recordRemarks"]=recordRemarkss;
+			postdata["recordSort"]=recordSorts;
+			postdata["caseId"]=caseId;
+			postdata["batchId"]=batchId;
+			postdata["checkUserId"]=checkUserId;
+			postdata["checkUserName"]=checkUserName;
+			postdata["checkUserLoginid"]=createrJobNo;
+			if(recordScores != "-" && recordScores != ""){
+				if(!$.isNumeric(recordScores)){
+					 myAlert("提示","评分只能为数字");
+	            	 return false;
+				}else{
+					if(recordScores > 400){
+						myAlert("消息","评分分数不在范围内");
+		            	return false;
+					}
+				}
+			}
+			/*if(recordRemarkss != null && recordRemarkss != ""){
+				if(isSpecialCharacters(recordRemarkss)){
+					myAlert("消息","评语包含特殊字符，请重新输入");
+	            	return false;
+				}
+			}*/
+            if(recordSorts == " 请选择"){
+            	 myAlert("提示","请选择录音分类");
+            	 return false;
+            }else{
+            	$.post(baseUrl+"/mvc/manQuaAllot/saveRecordsCheck.do",postdata,function(data){
+					 if(data == "3"){
+						 myAlert("提示","录音质检信息保存失败");
+						 return false;
+					 }else if(data == "4"){
+						 myAlert("提示","距离上次质检时间超过24小时，不能再次质检");
+						 return false;
+					 }else if(data == "5"){
+						 myAlert("提示","非第一质检人，不能对录音再次进行质检");
+						 return false;
+					 }else{
+						 myAlert("提示","录音质检信息保存成功");
+						 $('#qua_audio_checkInfos').bootstrapTable('updateRow', {
+				            index: table.$data.thId,
+				            row: {
+				            	record_sort:tarNode.find('select').eq(0).children(':selected').text(),
+				            	record_score:txt[0],
+				            	record_remarks:txt[1]
+				            }
+					       });
+					       $('#tooling').remove();
+					       table.editing = true;
+//					       $(ele).html("更新");
+					       $('#editButtonForRecord'+index).css('display','block');
+					       $($('#qua_audio_checkInfos tbody tr')[index]).css('background',"#e6e6e6");
+					       return false;
+					 }
+				 });
+            }
+        };
+        var recoveryData = function(){
+          $('#qua_audio_checkInfos').bootstrapTable('updateRow', {
+                index: table.$data.thId,
+                row: {},
+            });
+          $('#tooling').remove();
+          table.editing = true;
+          return false;
+        };
+
+        if(table.editing){
+            var  rootid = 0;
+            table.editing = false;
+            var buttonText='保存';
+            table.columns.forEach(function(column, i){
+                if (!column.editable) return;
+                switch(column.editable){
+                    case 'input':
+                        var div=$('<div class="editable-input col-md-12 col-sm-12 col-xs-12" style="position: relative;"></div>');
+//                        txt.push(tarNode.find('td').eq(column.fieldIndex).text());
+                        var inputValue=(tarNode.find('td').eq(column.fieldIndex).html());
+                        if(inputValue.indexOf('href')>=0){
+                        	txt.push($(inputValue).attr('title'));
+                        }else{
+                        	txt.push(tarNode.find('td').eq(column.fieldIndex).text());
+                        }
+                        div.append($('<input type="text" class="form-control input-sm" style="height:26px;line-height:20px;margin-top:-3px;" maxlength="200"></div>'));
+                        div.append($('<span class="clear"><i class="fa fa-times-circle-o" aria-hidden="true"></i></span>'));
+                        tarNode.find('td').eq(column.fieldIndex).text('').append(div);
+                        //tarNode.find('td').css('padding','0 !important');
+                        //$($('#qua_audio_checkInfos tbody tr')[index]).find("td").css('padding',"0 !important");
+                        break;
+                    case 'select':
+                    	var inputText=tarNode.find('td').eq(column.fieldIndex).text();
+                        var select=$('<select id="'+column.field+'" style="background:#fffcdb;width:70px;height:26px;line-height:20px;margin-top:-3px;">'), options = $.selectArray[column.field];
+                        tarNode.find('td').eq(column.fieldIndex).text('').append(select);
+                        //tarNode.find('td').css('padding','0 !important');
+                        //$($('#qua_audio_checkInfos tbody tr')[index]).find("td").css('padding',"0 !important");
+                        setDivision($('#'+column.field), options);
+                        tarNode.find('td').eq(column.fieldIndex).find("select option:contains('"+inputText+"')").attr("selected",true);
+                        if(inputText!=null&&inputText!=""&&inputText!='请选择'){
+                        	buttonText='更新';
+                        }
+                        break;
+                    case 'textarea':
+                        break;
+                    default:
+                        console.log(column.fieldIndex+' '+column.editable);
+                }
+                tarNode.css('background',"#e6e6e6");
+            }, evt);
+            for(var i=0, l=txt.length; i<l; i++){
+            	if(txt[i] == "-"){
+            		txt[i] = "";
+            	}
+                tarNode.find('input[type="text"]').eq(i).val(txt[i]);
+            }
+            tarNode.find('td').last().append('<div id="tooling" class="editable-buttons"/>');
+            var submit = '<button type="button" class="btn btn-primary btn-sm editable-submit" style="height:20px;line-height:15px;width:35px">'+buttonText+'</button>',
+        	   cancel = '<button type="button" class="btn btn-default btn-sm editable-cancel" style="height:25px;display:none;">取消</button>';
+            $('.clear').on('click', function(){ $(this).parent().find('input').val('');});
+            $(submit).on('click', function(){
+            	replaceData(this);
+            	$($('#qua_audio_checkInfos tbody tr')[index]).css('background',"#e6e6e6");
+            }).appendTo('#tooling');
+            $(cancel).on('click', recoveryData).appendTo('#tooling');
+        }
+    }
+
+    function updateToServerSide(item, data){
+        var itemid = $(item).find('a').attr('href').match(/\d+/g)[0];
+        var datas = {'treeId': itemid, 'oldTreeSerialNo': data[0], 'adminDivision': data[2], 'adminUnit': data[3], 'treeAddr': data[1]}; //鍌抽€佽嚦浼烘湇鍣ㄧ鐨凞ata鐢㈢敓铏曪紝闇€鎵嬪嫊淇敼灏嶆噳琛ㄦ牸
+        store( 'data/update', datas)
+    }
+
+    var BootstrapTable = $.fn.bootstrapTable.Constructor,
+        _initTable = BootstrapTable.prototype.initTable,
+        _initBody = BootstrapTable.prototype.initBody;
+
+    BootstrapTable.prototype.initTable = function(){
+        var that = this;
+        this.$data = {};
+        _initTable.apply(this, Array.prototype.slice.apply(arguments));
+
+        if (!this.options.clickEdit) {
+            return;
+        }
+
+    };
+
+    BootstrapTable.prototype.initBody = function () {
+        var that = this;
+        _initBody.apply(this, Array.prototype.slice.apply(arguments));
+
+        if (!this.options.clickEdit) {
+            return;
+        }
+
+        var table = this.$tableBody.find('table');
+        that.editing=true;
+
+        table.on('dbl_click-row.bs.table', function (e, row, $element, field) {
+        	if($element==undefined){
+        		var trs=$("#qua_audio_checkInfos").find("tbody tr");
+        		$.each(trs,function(index,tr){
+        			var recordId=$($(tr).find("td")[0]).html();
+        			if(recordId==$("#txt_search_call_records_id").html()){
+        				$element=$(tr);
+        				return false;
+        			}
+        		});
+        	}
+        	
+        	/*if(row==undefined){
+        		var datas=$("#qua_audio_checkInfos").bootstrapTable("getData");
+        		$.each(datas,function(index,data){
+        			if(datas.call_records_id==$("#txt_search_call_records_id").html()){
+        				row=data;
+        				return false;
+        			}
+        		});
+        	}*/
+            if(field ==='no') return; //|| field ==='noOld'
+            this.$data.thId = $element.data().index;
+            this.$data.itemid = $element.data().uniqueid;
+            //this.$data.divi = parseInt(row.area);
+            //this.$data.town=parseInt(row.town);
+            clikcToEdit(this, $element);
+        }.bind(this));
+    };
+})(jQuery);
+

@@ -1,0 +1,200 @@
+﻿var audio;
+function audioContainerInit(control,url,ipccUrlAndPort,bankUrlIpAndPort,nginxIpAndPort,type,isBank){
+  $('#'+control).empty();
+  var audioControl=' <div id="waveShow" class="control-label col-sm-12" style="width:97%;"> '
+			+'       <div id="peaks-container" style="width: 100%; height:0px"></div>'
+			+'       <div id="waveform" style="width: 100%; height: 60px;"></div>'
+			+'       <div id="demo-controls" style="text-align: left;">'
+			+'          <audio style="width:98%;" id="audioVoice" controls autoplay> '  //ontimeupdate="myFunction(this)"
+//			+'      		<source	src="" type="audio/mpeg"></source>'
+			+'      	</audio>'
+			+'      </div>'
+			+'      <div class="panel-body">'
+			+'      	<div class="scroll" style="margin-top:10px;">'
+			+'      		<table class="table table-bordered" id="div1" >'
+			+'      			<thead>'
+			+'      				<tr style="height:10px;" >'
+			+'      					<th style="width:15%;text-align:center;" >角色</td>'
+			+'      					<th style="width:20%;text-align:center;" >通话起始时间</td>'
+			+'      					<th >通话内容</td>'
+			+'      				</tr>'
+			+'      			</thead>'
+			+'      			<tbody id="textContentofaudio"></tbody>'
+			+'      		</table>'
+			+'      	</div>'
+			+'      </div>'; 
+	$('#'+control).append(audioControl);
+	audio = document.getElementById("audioVoice");
+	audio.addEventListener('ended', function(){
+		//audio.autoplay=true;
+		nextAudio(control,ipccUrlAndPort,bankUrlIpAndPort,nginxIpAndPort,type,isBank);
+	}, false);
+	
+}
+
+//自动播放下一条录音
+function nextAudio(control,ipccUrlAndPort,bankUrlIpAndPort,nginxIpAndPort,type,isBank){
+	audio.removeEventListener("addEventListener",function(){},false);
+	var datas=$('#qua_audio_checkInfos').bootstrapTable('getData');
+	index++;
+	if(index<datas.length){
+		var url= datas[index].recording_url;
+		audioContainerInitByIsBank(control,url,bankUrlIpAndPort,type,isBank);
+		
+		if(type==1){
+			var currentRecordId=$("#txt_search_call_records_id").html();
+			tableColor(currentRecordId,allRecordData,2);
+		}else{
+			var currentRecordId=$("#txt_search_call_records_id").html();
+			tableColor(currentRecordId,allRecordData,2);
+		}
+	}else{
+		index--;
+	}
+}
+
+/**
+ * 根据登录人角色初始化录音播放器
+ * @param isBank 是否是行方人
+ * @param originalUrl 原始地址
+ * @param bankUrlIpAndPort 行方的ip和端口号
+ */
+function audioContainerInitByIsBank(control,originalUrl,ipccUrlAndPort,bankUrlIpAndPort,nginxIpAndPort,type,isBank){
+	if(originalUrl!=null&&originalUrl!=""){
+		audioContainerInit(control,'',ipccUrlAndPort,bankUrlIpAndPort,nginxIpAndPort,type,isBank);
+		var audioVoice=document.getElementById("audioVoice");
+		//nginxIpAndPort:172.16.12.216:8080/bankService
+		//如果传nginx地址
+		/*var reg=/^http:\/\/[0-9.]+:[0-9]+\//;
+		var ips=nginxIpAndPort.match(reg);//匹配IP和端口号
+		var nginxIp=ips[0];//得到Nginx的Ip和端口号
+		
+		var bankUrl=nginxIpAndPort+originalUrl;//行方服务器地址
+		originalUrl=nginxIp+originalUrl;//IPCC地址 */
+		
+		
+		var bankUrl=bankUrlIpAndPort+originalUrl;
+		originalUrl=ipccUrlAndPort+originalUrl;
+		
+		if(isBank){
+			playAudio(audioVoice,bankUrl,originalUrl);
+			/*NetPing(bankUrl,function(){
+				audioVoice.src=bankUrl;
+				//waveShow();
+			},function(){
+				audioVoice.src=originalUrl;
+				//waveShow();
+			});*/
+		}else{
+			playAudio(audioVoice,originalUrl,bankUrl);
+			/*NetPing(originalUrl,function(){
+				audioVoice.src=originalUrl;
+				//waveShow();
+			},function(){
+				//var bankUrl=originalUrl.replace(reg,bankUrlIpAndPort+'/');
+				audioVoice.src=bankUrl;
+				//waveShow();
+			});*/
+		}
+	}else{
+		audioContainerInit(control,'',ipccUrlAndPort,bankUrlIpAndPort,nginxIpAndPort,type,isBank);
+	}
+}
+
+function playAudio(audioVoice,dir,otherDir) {
+	audioVoice.src = dir;
+    setTimeout(function () {
+        if (audioVoice.readyState == 0) {
+        	audioVoice.src = otherDir;
+        }
+        /*if (audioVoice != null) {
+            if (audioVoice.paused) {
+            	audioVoice.play();
+            }
+            else {
+            	audioVoice.pause();
+            }
+        }*/
+    }, 100);
+};
+
+
+/**
+ * 判定地址是否存在
+ * @param url 地址
+ * @param successCallBack 
+ * @param errorCallBack
+ */
+function NetPing(url,successCallBack,errorCallBack) {
+    $.ajax({
+        type: "post",
+        cache: false,
+        url: baseUrl+"/mvc/audioAddressChange/addressChange.do",
+        data: {"url":url},
+        success: function(data) {
+        	if(data==true){
+        		if (typeof successCallBack === "function") {
+        			successCallBack();
+        		}
+        	}else{
+        		if (typeof errorCallBack === "function") {
+            		errorCallBack();
+            	}
+        	}
+        },
+        error: function() {
+        	if (typeof successCallBack === "function") {
+    			successCallBack();
+    		}
+        }
+    });
+}
+
+
+function waveShow(){
+		(function(Peaks) {
+	    	var options = {
+	    		container : document.getElementById('peaks-container'),
+	    		mediaElement : document.querySelector('audio')
+	    	};
+	    	var peaksInstance = Peaks.init(options);
+	    	peaksInstance.on('segments.ready', function() {
+	    		// do something when segments are ready to be displayed做一些事情时，段准备被显示
+	    		segments: [ {
+	    			// Assigned colour of the segment指定颜色的段123, 2, 61, 1
+	    			color : "rgba(32,171,70,1)",
+	    			// Editable state of the segment该段的编辑状态
+	    			editable : true,
+	    			// End time in seconds of the segment在段的秒结束时间
+	    			endTime : 588.986667,
+	    			// Unique ID of the segment段的唯一标识
+	    			//id: "segment0",
+	    			// Kinetics.js Element group of segment canvas objects for overview waveform段画布对象概述波形kinetics.js元素组
+	    			//overview: Kinetic.Group,
+	    			// End time in seconds of the segment在段的秒结束时间
+	    			startTime : 578.986667,
+	    		// Kinetics.js Element group of segment canvas objects for overview waveform段画布对象概述波形kinetics.js元素组
+	    		//zoom: Kinetic.Group
+	    		} ]
+	    	})
+	    	//$("#zoomIn").on("click", window.peaks.zoom.zoomIn);
+	    	//$("#zoomOut").on("click", window.peaks.zoom.zoomOut);
+	    	$("#segment").on(
+	    			"click",
+	    			function(event) {
+	    				startTime = window.peaks.time.getCurrentTime();
+	    				endTime = startTime + 10;
+	    				segmentEditable = true;
+	    				window.peaks.segments.addSegment(startTime,
+	    						endTime, segmentEditable);
+	    	});
+	    	/* peaksInstance.segments.add([
+	    	 {
+	    	   startTime:0,
+	    	   endTime:588.986667,
+	    	   color:"#666"
+	    	 }
+	    	]); */
+	    	// self.waveform.segments.createSegment(segment.startTime, segment.endTime, segment.editable, segment.color, segment.labelText);
+	    })(peaks);
+}

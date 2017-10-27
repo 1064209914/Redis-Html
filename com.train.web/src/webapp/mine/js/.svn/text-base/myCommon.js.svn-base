@@ -1,0 +1,463 @@
+﻿var ShowCommon = {
+	remarkFormater : function(value, row, index, lenght) {
+		if (typeof (value) != "undefined" && value != null) {
+			if (lenght == null) {
+				lenght = 30;
+			}
+			var abValue = value;
+			if (value.length >= lenght) {
+				abValue = value.substring(0, lenght) + "...";
+				var content = '<a style="text-decoration:none;color:#333333" href="#" title="' + value + '" class="note">'
+						+ abValue + '</a>';
+				return content;
+			} else {
+				return value;
+			}
+
+		} else {
+			return "";
+		}
+	},
+	remarkTooltip : function(width) {
+		if (typeof (width) == "undefined") {
+			width = "300";
+		}
+		$(".note").tooltip({
+			hideDelay : 5000,
+			onShow : function() {
+				$(this).tooltip('tip').css({
+					width : width.toString(),
+					boxShadow : '1px 1px 3px #292929'
+				});
+			}
+		});
+	},
+	TimeFormater : function(value, rowData, rowIndex) {
+		try {
+			if (typeof (value) != "undefined") {
+				if (value.length > 10) {
+					return value.substring(0, 10);
+				} else {
+					return value;
+				}
+			} else {
+
+				return value;
+			}
+		} catch (e) {
+			return "";
+		}
+	}
+
+}
+
+var EntrustCommon = {
+
+	SetComboBoxValue : function(ControlId, url, valuefield, textfield,
+			HasTitle, callback) {
+
+		$.ajax({
+			url : url,
+			dataType : 'json',
+			success : function(jsonstr) {
+				var obj = {};
+				obj[valuefield] = '-1';
+				obj[textfield] = '请选择';
+				if (HasTitle == "true") {
+					jsonstr.unshift(obj);
+				}
+
+				$(ControlId).combobox({
+					data : jsonstr,
+					valueField : valuefield,
+					textField : textfield,
+					onLoadSuccess : function() {
+						var val = $(this).combobox('getData');
+						for ( var item in val[0]) {
+							if (item == valuefield) {
+								$(this).combobox('select', val[0][item]);
+							}
+						}
+						if (typeof callback === "function") {
+							callback();
+						}
+					}
+				});
+			}
+		});
+	},
+	SetComBoxEmptyValue : function(CtlId, Id, Text) {
+		var UserData = [ {
+			Id : '',
+			Text : '请选择'
+		} ];
+		$(CtlId).combobox({
+			data : UserData,
+			valueField : Id,
+			textField : Text,
+			onLoadSuccess : function() { // 加载完成后,设置选中第一项
+				var val = $(this).combobox('getData');
+				for ( var item in val[0]) {
+					if (item == valuefield) {
+						$(this).combobox('select', val[0][item]);
+					}
+				}
+			}
+		});
+	},
+	SetComBoxEmptyData : function(CtlId, valuefield, textfield, Data) {
+		$(CtlId).combobox({
+			data : Data,
+			valueField : valuefield,
+			textField : textfield,
+			onLoadSuccess : function() {
+				var val = $(this).combobox('getData');
+				for ( var item in val[0]) {
+					if (item == valuefield) {
+						$(this).combobox('select', val[0][item]);
+					}
+				}
+			}
+		});
+	}
+
+}
+
+// Ajax方法获取数据
+function AjaxGetData(URL, type, data, datatype, async, timeout, errorfun,
+		successfun) {
+	$.ajax({
+		url : URL,
+		type : type,
+		data : data,
+		datatype : datatype,
+		timeout : timeout,
+		async : async,
+		error : errorfun,
+		success : successfun
+	});
+}
+
+function CheckCtlFirstIsSmall(firstId, sectondId) {
+	if ($(firstId).val() == "" || $(sectondId).val() == ""
+			|| $(firstId).val() == "0" || $(sectondId).val() == "0") {
+		return true;
+	}
+	if (parseFloat($(firstId).val()) <= parseFloat($(sectondId).val())) {
+		return true;
+	} else {
+		return false;
+	}
+
+};
+function getNowFormatDate() {
+	var date = new Date();
+	var seperator1 = "-";
+	var seperator2 = ":";
+	var year = date.getFullYear();
+	var month = date.getMonth() + 1;
+	var strDate = date.getDate();
+	if (month >= 1 && month <= 9) {
+		month = "0" + month;
+	}
+	if (strDate >= 0 && strDate <= 9) {
+		strDate = "0" + strDate;
+	}
+	var currentdate = year + seperator1 + month + seperator1 + strDate
+	return currentdate;
+};
+
+function getBeforeDate(n) {
+	var n = n;
+	var d = new Date();
+	var year = d.getFullYear();
+	var mon = d.getMonth() + 1;
+	var day = d.getDate();
+	if (day <= n) {
+		if (mon > 1) {
+			mon = mon - 1;
+		} else {
+			year = year - 1;
+			mon = 12;
+		}
+	}
+	d.setDate(d.getDate() - n);
+	year = d.getFullYear();
+	mon = d.getMonth() + 1;
+	day = d.getDate();
+	s = year + "-" + (mon < 10 ? ('0' + mon) : mon) + "-"
+			+ (day < 10 ? ('0' + day) : day);
+	return s;
+};
+//获得当前月的第一天
+function getMonthFirstDate() {
+
+	var d = new Date();
+	var year = d.getFullYear();
+	var mon = d.getMonth() + 1;
+	year = d.getFullYear();
+	mon = d.getMonth() + 1;
+	s = year + "-" + (mon < 10 ? ('0' + mon) : mon) + "-01";
+	return s;
+};
+//正则表达式判定是否为数字
+function isNumber(nStr) {
+	var re = /\D/g; // 非数字的正则表达式
+	return !re.test(nStr);
+};
+function newGuid() {
+	var guid = "";
+	for (var i = 1; i <= 32; i++) {
+		var n = Math.floor(Math.random() * 16.0).toString(16);
+		guid += n;
+		if ((i == 8) || (i == 12) || (i == 16) || (i == 20))
+			guid += "-";
+	}
+	return guid;
+};
+
+function randomsort(a, b) {
+	return Math.random() > .5 ? -1 : 1;// 用Math.random()函数生成0~1之间的随机数与0.5比较，返回-1或1
+};
+
+function CloseWebPage() {
+	if (navigator.userAgent.indexOf("MSIE") > 0) {
+		if (navigator.userAgent.indexOf("MSIE6.0") > 0) {
+			window.opener = null;
+			window.close();
+		} else {
+			window.open('', '_top');
+			window.top.close();
+		}
+	} else if (navigator.userAgent.indexOf("Firefox") > 0) {
+		window.location.href = 'about:blank';
+	} else {
+		window.opener = null;
+		window.open('', '_self', '');
+		window.close();
+	}
+};
+
+/**
+ * ctrName      元素Id
+ * url          请求地址
+ * para         请求参数
+ * valuefield   option 中Value对应值
+ * textfield    option 中text对应值
+ * IsHasHand    是否添加-请选择- 默认为""
+ * callback     回调函数
+ */
+function BindSelect(ctrlName, url,param, valuefield, textfield,IsHasHand,callback) {
+	var control = $('#' + ctrlName);
+	control.find("option").remove();
+	$.ajax({
+		url : url,
+		type : 'GET',
+		data:param,
+		timeout : 5000,
+		datatype:'json',
+		async : true,
+		success : function(result) {
+			control.empty();
+			if (IsHasHand == true) {
+				var option=$("<option value=''> " + '请选择'+ "</option>");
+				control.append(option);
+			}
+			$.each(result, function(i, item) {
+				var option=$("<option value='" + item[valuefield] + "'>"+ item[textfield] + "</option>");
+				control.append(option);
+			});
+			if(result.length>0){
+				control.multipleSelect({
+					placeholder: "请选择",
+					filter: true,
+					
+				});
+			}else{
+				control.multipleSelect({
+					placeholder: "请选择",
+					filter: false,
+				});
+			}
+			
+			if (typeof callback === "function") {
+				callback();
+			}
+		}
+
+	});
+}
+
+/**
+ * ctrName      元素Id
+ * url          请求地址
+ * para         请求参数
+ * valuefield   option 中Value对应值
+ * textfield    option 中text对应值
+ * IsHasHand    是否添加-请选择- 默认为""
+ * linkage      是否联动处理
+ * callback     回调函数
+ */
+function BindSelectNoMarkup(ctrlName, url,param, valuefield, textfield,IsHasHand, linkage,callback) {
+	var control = $('#' + ctrlName);
+	$.ajax({
+		url : url,
+		type : 'GET',
+		data:param,
+		timeout : 5000,
+		datatype:'json',
+		async : true,
+		success : function(result) {
+			control.empty();
+			if(result.length>0){
+				if (IsHasHand == true) {
+					var option=$("<option value=''> " + '请选择'+ "</option>");
+					control.append(option);
+				}
+			}
+			$.each(result, function(i, item) {
+				var option=$("<option value='" + item[valuefield] + "'>"+ item[textfield] + "</option>");
+				control.append(option);
+			});
+			if(linkage){
+				var id='';
+				if(!IsHasHand){
+					if(result.length>0){
+						var id =result[0][valuefield];
+					}
+				}
+				control.val(id).trigger("change");
+			}
+			if (typeof callback === "function") {
+				callback();
+			}
+		}
+
+	});
+}
+
+function removeDuplicatedItem(ar) {
+	var ret = [];
+	for (var i = 0, j = ar.length; i < j; i++) {
+		if (ret.indexOf(ar[i]) === -1) {
+			ret.push(ar[i]);
+		}
+	}
+	return ret;
+}
+
+var dicMap={};
+/**
+ * 数得数据字典文本
+ * @param code
+ */
+function getDicText(code,fun){
+    $.ajax({
+        type:"post",
+        url:"../common/dicList.htm",
+        data:{code:code},
+        dataType:"json",
+        async:false,
+        success:function(data){
+            fun(data);
+        }
+    });
+}
+ 
+/**
+ * 缓数数据字典
+ * @param value
+ * @param rowData
+ */
+function cacheDic(value,code){
+    if(dicMap[code]==undefined){
+        getDicText(code,function(data){
+            if((typeof data=='object')&&data.constructor==Array){
+                var obj={};
+                $(data).each(function(i,item){
+                    if(item.value!="!"){
+                        obj[item.value]=item.text;
+                    }
+                });
+                dicMap[code]=obj;
+            }
+        });
+    }
+    if(dicMap[code][value]==undefined){
+        return "";
+    }
+    return dicMap[code][value];
+}
+ 
+/**
+ * 格式化数据字典
+ * @param value
+ * @param rowData
+ * @param rowIndex
+ */
+function formartDic(value,code){
+    return cacheDic(value,code);
+}
+
+
+/**
+ * 输入金额时候满足千分位分割以及保留小数点后2位，若无小数点，自动添加.00
+ * @param oInput 数字
+ * @returns {String}
+ */
+function commafy(oInput){
+	if(oInput!=null&&oInput!=""){
+		oInput += '';  
+		oInput = oInput.replace(/[^0-9|\.]/g, ''); //清除字符串中的非数字非.字符  
+		if(/^0+/) //清除字符串开头的0  
+			oInput = oInput.replace(/^0+/, '');  
+		if(!/\./.test(oInput)) //为整数字符串在末尾添加.00  
+			oInput += '.00';  
+		if(/^\./.test(oInput)) //字符以.开头时,在开头添加0  
+			oInput = '0' + oInput;  
+		oInput += '00';        //在字符串末尾补零  
+		oInput = oInput.match(/\d+\.\d{2}/)[0];  
+		
+		var re=/(-?\d+)(\d{3})/
+			while(re.test(oInput)){
+				oInput=oInput.replace(re,"$1,$2");
+			}
+		return oInput;
+	}else{
+		return "";
+	}
+}
+
+/**
+ * 判断是否为手机号
+ * @param phoneNumber 输入的内容
+ * @returns
+ */
+function isTelephone(phoneNumber){
+	var reg = /^1[34578]\d{9}$/;
+	if(reg.test(parseInt(phoneNumber))){
+		return phoneNumber;
+	}else{
+		return "";
+	}
+}
+$(function(){
+	$('.phoneNumClass').change(function(){
+		$(this).val(isTelephone(this.value));
+	});
+});
+
+
+/**
+ * 判断是否为特殊字符
+ * @param phoneNumber 输入的内容
+ * @returns
+ */
+function isSpecialCharacters(characters){
+	var reg = /^[\u4e00-\u9fa5a-zA-Z0-9]+$/;
+	if(reg.test(characters)){
+		return false;
+	}else{
+		return true;
+	}
+}

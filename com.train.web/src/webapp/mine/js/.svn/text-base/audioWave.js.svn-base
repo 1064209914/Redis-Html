@@ -1,0 +1,94 @@
+﻿function AudioWaveInitial(voicePaths){
+	createBaseSource();
+	playlist = WaveformPlaylist.init({
+		  samplesPerPixel: 5000,
+		  waveHeight: 100,
+		  container: document.getElementById("playlist"),
+		  state: 'cursor',
+		  colors: {
+		    waveOutlineColor: '#E0EFF1',
+		    timeColor: 'grey',
+		    fadeColor: 'black'
+		  },
+		  timescale: true,
+		  controls: {
+		    show: true, //whether or not to include the track controls
+		    width: 200 //width of controls in pixels
+		  },
+		  seekStyle : 'line',
+		  zoomLevels: [500, 1000, 3000, 5000,10000]
+	});
+	var voices=[];
+	for(var i=0;i<voicePaths.length;i++){
+		var temp={
+			"src": voicePaths[i],
+	        "name": "音频"+(parseInt(i)+1)
+		}
+		voices.push(temp);
+	}
+	
+	playlist.load(voices
+//	   [
+//       {
+//         "src": voicePathFirst,
+//         "name": "音频录音01",
+//       },
+//       {
+//         "src": voicePathSecond,
+//         "name": "客户",
+//       }
+//	  ]
+	).then(function() {
+	   playlist.initExporter();
+	});
+	
+//	(function(i,s,o,g,r,a,m)
+//		{i['GoogleAnalyticsObject']=r;
+//		i[r]=i[r]||function(){
+//	      (i[r].q=i[r].q||[]).push(arguments)},
+//	      i[r].l=1*new Date();
+//	      a=s.createElement(o),
+//	      m=s.getElementsByTagName(o)[0];
+//	      a.async=1;
+//	      a.src=g;
+//	      m.parentNode.insertBefore(a,m)
+//	 })(window,document,'script',basePath+'/plugins/wavefrom/js/analytics.js','ga');
+//
+//	 ga('create', 'UA-62186746-1', 'auto');
+//	 ga('send', 'pageview');
+	 
+	 $.getScript(basePath+"/plugins/wavefrom/js/emitter.js");
+}
+
+function createBaseSource(){
+	$("#container").append('<div class="wrapper">');
+	$("#container").append('  <article class="post">');
+	$("#container").append('    <div class="post-content">');
+	$("#container").append('      <div id="top-bar" class="playlist-top-bar">');
+	$("#container").append('        <div class="playlist-toolbar">');
+	
+	$("#container").append('          <div class="btn-group">');
+	$("#container").append('            <span class="btn-pause btn btn-warning"> <i	class="fa fa-pause"></i></span>');
+	$("#container").append('            <span class="btn-play btn btn-success"> <i class="fa fa-play"></i></span>');
+	$("#container").append('            <span class="btn-stop btn btn-danger"> <i class="fa fa-stop"></i></span>');
+	$("#container").append('            <span class="btn-rewind btn btn-success"> <i class="fa fa-fast-backward"></i></span>');
+	$("#container").append('            <span class="btn-fast-forward btn btn-success"> <i class="fa fa-fast-forward"></i></span>');
+	$("#container").append('          </div>');
+	
+	$("#container").append('          <div class="btn-group">');
+	$("#container").append('            <span title="zoom in" class="btn-zoom-in btn btn-default"><i class="fa fa-search-plus"></i></span>');
+	$("#container").append('            <span title="zoom out" class="btn-zoom-out btn btn-default"><i class="fa fa-search-minus"></i></span>');
+	$("#container").append('          </div>');
+
+	$("#container").append('          <div class="btn-group">');
+	$("#container").append('            <span title="Download the current work as Wav file"	class="btn btn-download btn-primary"><i class="fa fa-download"></i></span>');
+	$("#container").append('          </div>');
+	
+	$("#container").append('        </div>');
+	$("#container").append('      </div>');
+	
+	$("#container").append('      <div id="playlist"></div>');
+	$("#container").append('    </div>');
+	$("#container").append('  </article>');
+	$("#container").append('</div>');
+}

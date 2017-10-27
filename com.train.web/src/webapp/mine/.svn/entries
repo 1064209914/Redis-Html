@@ -1,0 +1,46 @@
+10
+
+dir
+48
+svn://172.16.8.19/svn/FY17_JHDXZJ_SRC/01Trunk/com.htfg.callcenter.dxzj.build/com.htfg.callcenter.dxzj.web/src/main/webapp/mine
+svn://172.16.8.19/svn/FY17_JHDXZJ_SRC
+
+
+
+2017-08-10T09:27:48.088437Z
+8
+wangqiangsheng
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+91ac16b1-fdad-45d5-8b0f-9f771b07f0dd
+
+Image
+dir
+
+bootstrap-Tab
+dir
+
+bootstrap_ace
+dir
+
+css
+dir
+
+js
+dir
+
+plugins
+dir
+
